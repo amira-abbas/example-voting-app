@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+
+    environment {
+        DEPLOY_DIR = "/var/www/portal"
+    }
+
+    stages {
+        stage('Clone Repo') {
+            steps {
+                dir("${DEPLOY_DIR}") {
+                    git branch: 'main', url: 'https://github.com/your-username/your-laravel-project.git'
+                }
+            }
+        }
+
+        stage('Install Composer Dependencies') {
+            steps {
+                dir("${DEPLOY_DIR}") {
+                    sh 'composer install --no-interaction --prefer-dist'
+                }
+            }
+        }
+
+        stage('Run Artisan Commands') {
+            steps {
+                dir("${DEPLOY_DIR}") {
+                    sh '''
+                        php artisan config:clear
+                        php artisan migrate --force
+                        php artisan optimize
+                    '''
+                }
+            }
+        }
+
+        stage('Done') {
+            steps {
+                echo "Laravel app deployed!"
+            }
+        }
+    }
+}
